@@ -2,8 +2,10 @@
 
 `POST /register` must stay unauthenticated (MCP clients register themselves), so anyone
 who finds the URL can call it. Each call stores a client in Firestore; this caps how
-fast one address (and one instance overall) can create them. Limits are per Cloud Run
-instance, which is enough to stop floods without shared state.
+fast one address (and one instance overall) can create them. claude.ai registers from
+Anthropic's shared addresses and an office shares one address, so the per-address cap is
+generous (60/hour). Limits are per Cloud Run instance, which is enough to stop floods
+without shared state.
 """
 
 from __future__ import annotations
@@ -43,7 +45,7 @@ class RegisterRateLimit:
     """ASGI middleware: 429 when one client IP, or the whole instance, registers too often."""
 
     def __init__(
-        self, app, per_ip: int = 10, total: int = 200, window_s: float = 3600.0
+        self, app, per_ip: int = 60, total: int = 300, window_s: float = 3600.0
     ) -> None:
         self.app = app
         self.per_ip = SlidingWindow(per_ip, window_s)
@@ -73,6 +75,6 @@ class RegisterRateLimit:
 
 def limits_from_env(env: Mapping[str, str] = os.environ) -> dict[str, int]:
     return {
-        "per_ip": int(env.get("REGISTER_LIMIT_PER_IP_HOUR", "10")),
-        "total": int(env.get("REGISTER_LIMIT_TOTAL_HOUR", "200")),
+        "per_ip": int(env.get("REGISTER_LIMIT_PER_IP_HOUR", "60")),
+        "total": int(env.get("REGISTER_LIMIT_TOTAL_HOUR", "300")),
     }

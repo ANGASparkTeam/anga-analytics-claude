@@ -39,5 +39,5 @@ def test_total_cap_across_ips():
 
 
 def test_limits_from_env():
-    assert limits_from_env({}) == {"per_ip": 10, "total": 200}
+    assert limits_from_env({}) == {"per_ip": 60, "total": 300}
     assert limits_from_env({"REGISTER_LIMIT_PER_IP_HOUR": "3"})["per_ip"] == 3
