@@ -1,0 +1,19 @@
+{
+  "name": "anga-analytics",
+  "displayName": "ANGA Marketing Analytics",
+  "version": "0.4.0",
+  "description": "Read-only GA4 and Google Search Console reporting for the ANGA marketing team: the analytics connector, a Thai report-writing skill and slash shortcuts for weekly/monthly/campaign/traffic-drop and SEO reports.",
+  "author": {
+    "name": "ANGA Spark Team",
+    "email": "spark@anga.co.th"
+  },
+  "repository": "https://github.com/ANGASparkTeam/anga-analytics-claude",
+  "keywords": [
+    "ga4",
+    "google-analytics",
+    "marketing",
+    "reporting",
+    "search-console",
+    "seo"
+  ]
+}

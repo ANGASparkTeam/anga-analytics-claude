@@ -1,0 +1,284 @@
+<!doctype html>
+<!-- TEMPLATE. Every {{...}} is a slot to fill with real data, and the example rows/cards are samples to replace or delete.
+     A finished report contains no "{{" or "}}" at all. -->
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- TITLE: short name, e.g. "acme · ต.ค. 2026" -->
+<title>{{ชื่อรายงานสั้นๆ}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ANGA ONE design system (one.anga.co.th, light theme). Do not add colours, fonts or effects. */
+:root {
+  --primary: #FF5300;         /* brand orange: main series, active states, brand mark */
+  --primary-deep: #E72A1D;
+  --accent: #FFEEE5;          /* orange tint: highlighted row, selected chip */
+  --background: #FAFAFA;      /* page */
+  --card: #FFFFFF;
+  --surface-2: #F4F4F5;       /* table header, inner panels */
+  --surface-3: #EAEAEC;
+  --text: #111827;
+  --text-2: #657386;
+  --text-3: #9CA3B0;
+  --border: #DEDFE3;
+  --border-light: #E8E9ED;
+  --win-bg: #DFF6EB;  --win-fg: #0E6243;        /* good change */
+  --loss-bg: #FCEEEE; --loss-fg: #A02222;       /* bad change */
+  --flat-bg: #F3F4F6; --flat-fg: #364463;       /* no / unknown change */
+  --warn-bg: #FEF4E1; --warn-fg: #8F4E14;       /* data caveat */
+  --organic: #059669; --paid: #2563EB; --mixed: #D97706; --other: #6B7280;
+  --radius: 14px;
+  --shadow-sm: 0 1px 2px hsl(25 30% 10% / .06), 0 1px 1px hsl(25 30% 10% / .04);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--background); color: var(--text);
+  font-family: "Poppins", "IBM Plex Sans Thai", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.65;
+}
+:lang(th) { line-height: 1.7; }
+main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 64px; }
+
+/* Header */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+.topbar .logo { height: 34px; width: auto; display: block; }
+.topbar .doc-type { color: var(--text-2); font-size: 14px; font-weight: 500; text-align: right; }
+header.report { padding: 36px 0 8px; }
+h1 { font-size: clamp(26px, 3.6vw, 38px); line-height: 1.3; letter-spacing: -0.01em; margin: 0 0 12px; font-weight: 600; max-width: 28ch; }
+.context { color: var(--text-2); font-size: 14px; margin: 0; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border-light); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 24px; }
+section { margin-top: 28px; }
+.card h2 { font-size: 20px; line-height: 1.4; margin: 0 0 4px; font-weight: 600; }
+.card .lead { color: var(--text-2); font-size: 15px; margin: 0 0 20px; max-width: 75ch; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+
+/* KPI cards */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 28px; }
+.kpi { padding: 20px 22px; }
+.kpi .label { color: var(--text-2); font-size: 14px; font-weight: 500; }
+.kpi .value { font-size: 30px; font-weight: 600; line-height: 1.25; margin: 6px 0 10px; font-variant-numeric: tabular-nums; }
+.kpi.lead-figure { border-color: var(--primary); }
+.kpi.lead-figure .value { color: var(--primary); font-size: 36px; }
+.kpi .unit { font-size: 16px; color: var(--text-3); font-weight: 500; margin-left: 2px; }
+.kpi .prev { color: var(--text-3); font-size: 13px; margin-top: 6px; }
+
+/* Change chips: colour = good or bad, never up or down */
+.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: var(--flat-bg); color: var(--flat-fg); font-variant-numeric: tabular-nums; }
+.chip.good { background: var(--win-bg); color: var(--win-fg); }
+.chip.bad { background: var(--loss-bg); color: var(--loss-fg); }
+.vs { color: var(--text-3); font-size: 13px; margin-left: 6px; }
+
+/* Charts */
+.chart { position: relative; height: 300px; }
+.chart.short { height: 220px; }
+.chart.tall { height: 420px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 500; color: var(--text-2); background: var(--surface-2); padding: 10px 12px; white-space: nowrap; }
+th:first-child { border-radius: 8px 0 0 8px; } th:last-child { border-radius: 0 8px 8px 0; }
+td { padding: 11px 12px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+th.num, td.num { text-align: right; white-space: nowrap; }
+td.name { max-width: 440px; overflow-wrap: anywhere; font-weight: 500; }
+td.name small { display: block; color: var(--text-3); font-weight: 400; }
+tr.highlight td { background: var(--accent); }
+.table-note { color: var(--text-3); font-size: 13px; margin: 12px 0 0; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+
+/* Recommendations */
+ol.recs { list-style: none; counter-reset: rec; padding: 0; margin: 0; }
+ol.recs li { counter-increment: rec; position: relative; padding: 0 0 16px 44px; max-width: 80ch; }
+ol.recs li::before { content: counter(rec); position: absolute; left: 0; top: 1px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--primary); font-weight: 600; font-size: 14px; display: grid; place-items: center; }
+ol.recs .owner { display: block; color: var(--text-2); font-size: 14px; }
+.hypothesis { color: var(--text-2); }
+.hypothesis::before { content: "สมมติฐาน: "; font-weight: 600; }
+
+/* Data notes */
+.notes { background: var(--surface-2); border-radius: var(--radius); padding: 18px 22px; color: var(--text-2); font-size: 13px; margin-top: 28px; }
+.notes ul { padding-left: 1.2em; margin: 6px 0 0; }
+.notes .warn { background: var(--warn-bg); color: var(--warn-fg); border-radius: 6px; padding: 1px 6px; }
+footer.brand { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; color: var(--text-3); font-size: 13px; }
+footer.brand .logo { height: 20px; width: auto; }
+
+@media (max-width: 760px) {
+  main { padding: 20px 16px 48px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .card { padding: 18px; }
+  .table-wrap { margin: 0 -18px; padding: 0 18px; }
+  table { font-size: 13px; }
+  th, td { padding: 9px 8px; }
+  th { white-space: normal; }
+  .hide-sm { display: none; }   /* secondary columns (previous value, extra metrics) */
+  .chip { padding: 2px 7px; font-size: 12px; }
+  .kpi .value { font-size: 26px; }
+  .kpi.lead-figure .value { font-size: 30px; }
+  .chart { height: 240px; }
+  .topbar .logo { height: 28px; }
+}
+@media print {
+  body { background: #fff; }
+  main { max-width: none; padding: 0 10mm; }
+  .card { box-shadow: none; break-inside: avoid; }
+  .chart { height: 240px; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<div class="topbar">
+  <svg class="logo" role="img" aria-label="ANGA" fill="none" viewBox="0 0 220 62" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><linearGradient id="anga-a-h" gradientUnits="userSpaceOnUse" x1="48.0871" x2="38.8347" y1="1.54064" y2="54.2983"><stop offset="0" stop-color="#ff5300"/><stop offset=".0833" stop-color="#fc460b"/><stop offset=".2641" stop-color="#f8301e"/><stop offset=".4617" stop-color="#f5202c"/><stop offset=".6869" stop-color="#f31734"/><stop offset="1" stop-color="#f21436"/></linearGradient><linearGradient id="anga-b-h" gradientUnits="userSpaceOnUse" x1="27.213" x2="7.02409" y1="14.6935" y2="48.3443"><stop offset="0" stop-color="#ff5300"/><stop offset=".226" stop-color="#fe4c06"/><stop offset=".5526" stop-color="#fa3916"/><stop offset=".9385" stop-color="#f31a31"/><stop offset="1" stop-color="#f21436"/></linearGradient><clipPath id="anga-c-h"><path d="m0 .010254h220v61h-220z"/></clipPath><g clip-path="url(#anga-c-h)"><g fill="#000"><path d="m81.7773 47.6921 13.5493-34.3681h5.3154l13.5 34.3681h-6.942l-10.4369-28.2088h2.3935l-10.5815 28.2088zm7.1806-6.4042v-5.573h18.0991v5.573z"/><path d="m118.596 47.692v-34.3681h4.549l1.962 6.649v27.7191zm23.268 0-19.964-26.3983 1.245-7.9675 19.964 26.3983zm0 0-1.868-6.4536v-27.9145h6.561v34.3681z"/><path d="m169.441 48.1817c-2.393 0-4.637-.4492-6.727-1.3455-2.092-.8962-3.927-2.1587-5.506-3.7895-1.58-1.6285-2.81-3.5109-3.687-5.6471-.878-2.134-1.316-4.4409-1.316-6.9185 0-2.5091.447-4.8318 1.34-6.9658.893-2.1339 2.138-4.0096 3.735-5.6224 1.595-1.6128 3.463-2.8685 5.601-3.7648 2.139-.8962 4.453-1.3432 6.943-1.3432 2.776 0 5.331.5301 7.66 1.5881 2.33 1.0602 4.261 2.5495 5.793 4.4723l-4.405 4.4971c-1.053-1.4017-2.362-2.4754-3.926-3.2257-1.565-.7502-3.287-1.1231-5.17-1.1231-2.139 0-4.03.4807-5.674 1.4421-1.643.9614-2.928 2.2979-3.854 4.0096s-1.388 3.7086-1.388 5.9886c0 2.2822.455 4.2949 1.364 6.038.908 1.7431 2.153 3.1043 3.735 4.0815 1.582.9771 3.39 1.4668 5.434 1.4668 2.108 0 3.909-.3998 5.41-1.1973 1.5-.7974 2.648-1.9722 3.447-3.5199.796-1.5477 1.197-3.4458 1.197-5.6943l4.261 2.983-14.698-.146v-5.7684h17.14v.9277c0 4.1062-.717 7.5363-2.154 10.2902-1.437 2.754-3.408 4.8228-5.913 6.2087-2.506 1.386-5.388 2.0778-8.642 2.0778z"/><path d="m187.635 47.6921 13.549-34.3681h5.315l13.501 34.3681h-6.943l-10.436-28.2088h2.393l-10.582 28.2088zm7.18-6.4042v-5.573h18.099v5.573z"/></g><path d="m67.8789 39.2213c-.0286-.1729-.0946-.3392-.1804-.4919l-14.2731-25.228-7.2883-12.880158c-.0528-.09659-.143-.226874-.2882-.345927-.2926-.2381057-.6159-.2628148-.7369-.2650611h-21.612c-.4356 0-.8315.2381061-1.0427.6199731l-.6072 1.087203c.0242-.03145.055-.0629.0858-.10333.5214-.5728 1.4783-.50766 1.8985.22238l11.7035 20.69272 5.8562 10.3621 2.9853 5.2967c.5918 1.0491-.1474 2.3744-1.3464 2.3744l-17.4893-.0247c-.4421 0-.8249-.191-1.1043-.4852-.396-.4044-.561-1.0558-.3432-1.6511l-2.4419 4.3196c.0638-.0741.495-.5548 1.1879-.5526.0308 0 .0638.0023.0924.0045.4774.0315.8998.3258 1.1396.7481l9.8732 17.485c.2178.3729.6138.6043 1.0428.6043h20.2436c.9173 0 1.4849-1.0086 1.0273-1.8195l-9.2616-16.3822c-.5368-.9456.132-2.1272 1.2055-2.1272h18.4221c.1782 0 .3564-.0269.5236-.0943.1474-.0584.3058-.155.4444-.31.0396-.0449.165-.1932.242-.4291.0747-.2313.0704-.4492.0418-.6267z" fill="url(#anga-a-h)"/><path d="m35.5396 22.5247c-.6622-.8581-2.0063-.8019-2.5673.1909l-11.3164 20.0032-9.3144 17.6849c-.451.8109-1.6103.8109-2.0613 0l-10.124006-19.1226c-.0791971-.1347-.1231953-.2718-.1451944-.4178-.00879969-.0539-.0109996-.11-.0109996-.1662 0-.1864.0329987-.3729.109996-.5413.013199-.0292.028598-.0607.046198-.0899l20.872806-36.91537.7545-1.31856c.0154-.04044.0462-.07862.0704-.11906.0242-.03144.055-.06289.0858-.10332.5214-.57281 1.4784-.50766 1.8985.22238z" fill="url(#anga-b-h)"/></g></svg>
+  <div class="doc-type">{{Marketing Report · GA4 + Search Console}}</div>
+</div>
+
+<header class="report">
+  <!-- H1 = the finding in one sentence, at most two lines -->
+  <h1>{{ข้อค้นพบหลักเป็นประโยคเดียว}}</h1>
+  <p class="context">{{ลูกค้า}} · {{GA4 property (id) / GSC site_url}} · {{ช่วงวันที่}} เทียบ {{ช่วงเทียบ}} · ข้อมูล ณ {{วันที่}}</p>
+</header>
+
+<!-- KPI cards: 3-5. The figure that answers the title gets .lead-figure.
+     Chip class by meaning: good / bad (position, bounce rate: lower is good); none = grey.
+     previous 0 -> "ใหม่"; no comparison -> drop the chip. -->
+<div class="kpis">
+  <div class="card kpi lead-figure">
+    <div class="label">{{ตัวชี้วัด}}</div>
+    <div class="value">{{12,345}}</div>
+    <span class="chip good">{{+14.9%}}</span><span class="vs">{{เทียบช่วงก่อน}}</span>
+    <div class="prev">ช่วงก่อน {{10,746}}</div>
+  </div>
+  <div class="card kpi">
+    <div class="label">{{ตัวชี้วัด}}</div>
+    <div class="value">{{6.55}}<span class="unit">%</span></div>
+    <span class="chip bad">{{-3.4%}}</span>
+    <div class="prev">ช่วงก่อน {{6.78%}}</div>
+  </div>
+</div>
+
+<!-- One card per point, biggest effect first. h2 states what the evidence shows. -->
+<section class="card">
+  <h2>{{หัวข้อที่บอกข้อค้นพบ}}</h2>
+  <p class="lead">{{1-2 ประโยคอธิบาย ตัวเลขจาก tool เท่านั้น}}</p>
+  <div class="chart"><canvas id="chart-trend"></canvas></div>
+</section>
+
+<!-- Two related cards side by side: wrap them in <div class="grid-2"> -->
+<section class="card">
+  <h2>{{หัวข้อ}}</h2>
+  <p class="lead">{{คำอธิบายสั้น}}</p>
+  <div class="table-wrap">
+    <table>
+      <!-- Mark secondary columns (previous value, extra metrics) with class="hide-sm" on th and td so phones show name, value, change. -->
+      <thead><tr><th>{{ช่องทาง / หน้า / คีย์เวิร์ด}}</th><th class="num">{{เซสชัน}}</th><th class="num hide-sm">{{ช่วงก่อน}}</th><th class="num">เปลี่ยน</th></tr></thead>
+      <tbody>
+        <tr class="highlight"><td class="name"><span class="dot" style="background:var(--organic)"></span>{{Organic Search}}</td><td class="num">{{18,300}}</td><td class="num hide-sm">{{24,100}}</td><td class="num"><span class="chip bad">{{-24.1%}}</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="table-note">{{แสดง 10 จาก N แถว}}</p>
+</section>
+
+<section class="card">
+  <h2>ข้อเสนอแนะ</h2>
+  <ol class="recs">
+    <li>{{สิ่งที่ควรทำ ระบุหน้า/คีย์เวิร์ด/แคมเปญ}}<span class="owner">{{ใครทำ · เมื่อไร}}</span></li>
+  </ol>
+</section>
+
+<div class="notes">
+  <strong>หมายเหตุข้อมูล</strong>
+  <ul>
+    <li>ที่มา: Google Analytics 4 property {{id}} / Google Search Console {{site_url}} ผ่าน ANGA Marketing Analytics</li>
+    <li><span class="warn">{{ข้อควรระวัง เช่น ข้อมูล 2-3 วันล่าสุดยังไม่ครบ}}</span></li>
+  </ul>
+</div>
+
+<footer class="brand">
+  <svg class="logo" role="img" aria-label="ANGA" fill="none" viewBox="0 0 220 62" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><linearGradient id="anga-a-f" gradientUnits="userSpaceOnUse" x1="48.0871" x2="38.8347" y1="1.54064" y2="54.2983"><stop offset="0" stop-color="#ff5300"/><stop offset=".0833" stop-color="#fc460b"/><stop offset=".2641" stop-color="#f8301e"/><stop offset=".4617" stop-color="#f5202c"/><stop offset=".6869" stop-color="#f31734"/><stop offset="1" stop-color="#f21436"/></linearGradient><linearGradient id="anga-b-f" gradientUnits="userSpaceOnUse" x1="27.213" x2="7.02409" y1="14.6935" y2="48.3443"><stop offset="0" stop-color="#ff5300"/><stop offset=".226" stop-color="#fe4c06"/><stop offset=".5526" stop-color="#fa3916"/><stop offset=".9385" stop-color="#f31a31"/><stop offset="1" stop-color="#f21436"/></linearGradient><clipPath id="anga-c-f"><path d="m0 .010254h220v61h-220z"/></clipPath><g clip-path="url(#anga-c-f)"><g fill="#000"><path d="m81.7773 47.6921 13.5493-34.3681h5.3154l13.5 34.3681h-6.942l-10.4369-28.2088h2.3935l-10.5815 28.2088zm7.1806-6.4042v-5.573h18.0991v5.573z"/><path d="m118.596 47.692v-34.3681h4.549l1.962 6.649v27.7191zm23.268 0-19.964-26.3983 1.245-7.9675 19.964 26.3983zm0 0-1.868-6.4536v-27.9145h6.561v34.3681z"/><path d="m169.441 48.1817c-2.393 0-4.637-.4492-6.727-1.3455-2.092-.8962-3.927-2.1587-5.506-3.7895-1.58-1.6285-2.81-3.5109-3.687-5.6471-.878-2.134-1.316-4.4409-1.316-6.9185 0-2.5091.447-4.8318 1.34-6.9658.893-2.1339 2.138-4.0096 3.735-5.6224 1.595-1.6128 3.463-2.8685 5.601-3.7648 2.139-.8962 4.453-1.3432 6.943-1.3432 2.776 0 5.331.5301 7.66 1.5881 2.33 1.0602 4.261 2.5495 5.793 4.4723l-4.405 4.4971c-1.053-1.4017-2.362-2.4754-3.926-3.2257-1.565-.7502-3.287-1.1231-5.17-1.1231-2.139 0-4.03.4807-5.674 1.4421-1.643.9614-2.928 2.2979-3.854 4.0096s-1.388 3.7086-1.388 5.9886c0 2.2822.455 4.2949 1.364 6.038.908 1.7431 2.153 3.1043 3.735 4.0815 1.582.9771 3.39 1.4668 5.434 1.4668 2.108 0 3.909-.3998 5.41-1.1973 1.5-.7974 2.648-1.9722 3.447-3.5199.796-1.5477 1.197-3.4458 1.197-5.6943l4.261 2.983-14.698-.146v-5.7684h17.14v.9277c0 4.1062-.717 7.5363-2.154 10.2902-1.437 2.754-3.408 4.8228-5.913 6.2087-2.506 1.386-5.388 2.0778-8.642 2.0778z"/><path d="m187.635 47.6921 13.549-34.3681h5.315l13.501 34.3681h-6.943l-10.436-28.2088h2.393l-10.582 28.2088zm7.18-6.4042v-5.573h18.099v5.573z"/></g><path d="m67.8789 39.2213c-.0286-.1729-.0946-.3392-.1804-.4919l-14.2731-25.228-7.2883-12.880158c-.0528-.09659-.143-.226874-.2882-.345927-.2926-.2381057-.6159-.2628148-.7369-.2650611h-21.612c-.4356 0-.8315.2381061-1.0427.6199731l-.6072 1.087203c.0242-.03145.055-.0629.0858-.10333.5214-.5728 1.4783-.50766 1.8985.22238l11.7035 20.69272 5.8562 10.3621 2.9853 5.2967c.5918 1.0491-.1474 2.3744-1.3464 2.3744l-17.4893-.0247c-.4421 0-.8249-.191-1.1043-.4852-.396-.4044-.561-1.0558-.3432-1.6511l-2.4419 4.3196c.0638-.0741.495-.5548 1.1879-.5526.0308 0 .0638.0023.0924.0045.4774.0315.8998.3258 1.1396.7481l9.8732 17.485c.2178.3729.6138.6043 1.0428.6043h20.2436c.9173 0 1.4849-1.0086 1.0273-1.8195l-9.2616-16.3822c-.5368-.9456.132-2.1272 1.2055-2.1272h18.4221c.1782 0 .3564-.0269.5236-.0943.1474-.0584.3058-.155.4444-.31.0396-.0449.165-.1932.242-.4291.0747-.2313.0704-.4492.0418-.6267z" fill="url(#anga-a-f)"/><path d="m35.5396 22.5247c-.6622-.8581-2.0063-.8019-2.5673.1909l-11.3164 20.0032-9.3144 17.6849c-.451.8109-1.6103.8109-2.0613 0l-10.124006-19.1226c-.0791971-.1347-.1231953-.2718-.1451944-.4178-.00879969-.0539-.0109996-.11-.0109996-.1662 0-.1864.0329987-.3729.109996-.5413.013199-.0292.028598-.0607.046198-.0899l20.872806-36.91537.7545-1.31856c.0154-.04044.0462-.07862.0704-.11906.0242-.03144.055-.06289.0858-.10332.5214-.57281 1.4784-.50766 1.8985.22238z" fill="url(#anga-b-f)"/></g></svg>
+  <span>จัดทำโดย ANGA · {{วันที่}}</span>
+</footer>
+
+</main>
+<script>
+// All chart numbers come from tool responses in this conversation. Paste them as returned.
+const ONE = {
+  primary: "#FF5300", prev: "#C2C5CC", text2: "#657386", grid: "#E8E9ED",
+  // categorical order for multi-series / shares: brand first, then ANGA ONE status hues
+  series: ["#FF5300", "#2563EB", "#059669", "#D97706", "#6B7280"],
+  // fixed hues for GA4 channel groups, use the same everywhere
+  channel: { "Organic Search": "#059669", "Paid Search": "#2563EB", "Direct": "#6B7280",
+             "Organic Social": "#D97706", "Paid Social": "#7C3AED", "Referral": "#0891B2",
+             "Email": "#DB2777", "Unassigned": "#9CA3B0" },
+};
+if (window.Chart) {
+  Chart.defaults.font.family = '"Poppins", "IBM Plex Sans Thai", system-ui, sans-serif';
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = ONE.text2;
+  Chart.defaults.plugins.legend.display = false;
+  Chart.defaults.plugins.tooltip.backgroundColor = "#111827";
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.animation = false;
+  Chart.defaults.maintainAspectRatio = false;
+}
+const fmt = (v) => typeof v === "number" ? v.toLocaleString("th-TH", { maximumFractionDigits: 2 }) : v;
+const narrow = () => window.matchMedia("(max-width: 760px)").matches;
+const compact = (v) => narrow() ? new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(v) : fmt(v);
+/* long category names (URLs, keywords) are shortened on the axis; the tooltip keeps the full text */
+const short = (s, n) => (s = String(s)).length > n ? s.slice(0, n - 1) + "…" : s;
+/* draw after the web fonts load, so labels are measured with the real font */
+const afterFonts = (fn) => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(fn);
+const legendTop = { display: true, position: "top", align: "end", labels: { usePointStyle: true, pointStyle: "circle", boxWidth: 8, boxHeight: 8 } };
+function axes(horizontal, pct) {
+  const value = { beginAtZero: true, grid: { color: ONE.grid }, border: { display: false },
+                  ticks: { maxTicksLimit: narrow() ? 4 : 6, maxRotation: 0, callback: (v) => pct ? (v * 100).toFixed(0) + "%" : compact(v) } };
+  // a ranking (horizontal bars) labels every bar; a time axis may skip labels
+  const cat = { grid: { display: false }, border: { color: "#DEDFE3" },
+                ticks: horizontal
+                  ? { autoSkip: false, callback: function (v) { return short(this.getLabelForValue(v), narrow() ? 18 : 30); } }
+                  : { maxRotation: 0, autoSkip: true, maxTicksLimit: narrow() ? 5 : 8,
+                      callback: function (v) { return short(this.getLabelForValue(v), 12); } } };
+  return horizontal ? { x: value, y: cat } : { x: cat, y: value };
+}
+/* line(id, labels, current, previous?, {pct, label, prevLabel}) - trend; previous period dashed grey */
+function line(id, labels, current, previous, opts = {}) {
+  const ds = [{ label: opts.label || "ช่วงนี้", data: current, borderColor: ONE.primary, backgroundColor: "rgba(255,83,0,.08)",
+                fill: !previous, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 4, tension: 0 }];
+  if (previous) ds.push({ label: opts.prevLabel || "ช่วงก่อน", data: previous, borderColor: ONE.prev, borderWidth: 2, pointRadius: 0, tension: 0, borderDash: [5, 4] });
+  return afterFonts(() => new Chart(document.getElementById(id), { type: "line", data: { labels, datasets: ds },
+    options: { scales: axes(false, opts.pct), plugins: { legend: previous ? legendTop : { display: false } }, interaction: { mode: "index", intersect: false } } }));
+}
+/* bars(id, labels, current, previous?, {horizontal, pct, colors}) - ranking (horizontal) or per-period columns */
+function bars(id, labels, current, previous, opts = {}) {
+  const perBar = Array.isArray(opts.colors);
+  const ds = [{ label: opts.label || "ช่วงนี้", data: current, backgroundColor: opts.colors || ONE.primary, borderRadius: 6, maxBarThickness: 26 }];
+  // previous period: the same hue, faded, so per-channel colours stay readable
+  if (previous) ds.push({ label: opts.prevLabel || "ช่วงก่อน", data: previous, backgroundColor: perBar ? opts.colors.map((c) => c + "55") : ONE.prev, borderRadius: 6, maxBarThickness: 26 });
+  const legend = !previous ? { display: false } : !perBar ? legendTop : { ...legendTop, labels: { ...legendTop.labels,
+    generateLabels: () => [{ text: ds[0].label, fillStyle: ONE.text2, strokeStyle: ONE.text2, pointStyle: "circle" },
+                           { text: ds[1].label, fillStyle: ONE.prev, strokeStyle: ONE.prev, pointStyle: "circle" }] } };
+  return afterFonts(() => new Chart(document.getElementById(id), { type: "bar", data: { labels, datasets: ds },
+    options: { indexAxis: opts.horizontal ? "y" : "x", scales: axes(!!opts.horizontal, opts.pct), plugins: { legend } } }));
+}
+/* share(id, labels, values, colors?) - doughnut for up to five parts; total in the card text, not on slices */
+function share(id, labels, values, colors) {
+  return afterFonts(() => new Chart(document.getElementById(id), { type: "doughnut",
+    data: { labels, datasets: [{ data: values, backgroundColor: colors || ONE.series.slice(0, values.length), borderColor: "#fff", borderWidth: 2 }] },
+    options: { cutout: "72%", plugins: { legend: { display: true, position: narrow() ? "bottom" : "right", labels: { usePointStyle: true, pointStyle: "circle", boxWidth: 8, boxHeight: 8 } } } } }));
+}
+const channelColors = (labels) => labels.map((l) => ONE.channel[l] || ONE.channel.Unassigned);
+
+// Example (replace with real data):
+// line("chart-trend", ["2026-10-01", "2026-10-02"], [1200, 1350], [1100, 1180]);
+// bars("chart-channels", labels, values, prevValues, { horizontal: true, colors: channelColors(labels) });
+</script>
+</body>
+</html>

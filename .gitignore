@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local secrets / state
+.env
+.oauth-storage/
+
+# GA token / OAuth client downloads
+.ga-token.json
+client_secret*.json
+
+# Local config (lives in Secret Manager) and build outputs
+properties.yaml
+*.zip
+.pytest_cache/
+.DS_Store
+
+# generated client reports
+reports/

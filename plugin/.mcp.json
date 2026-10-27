@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "analytics": {
+      "type": "http",
+      "url": "https://ga4-mcp-964691755094.asia-southeast1.run.app/mcp"
+    }
+  }
+}

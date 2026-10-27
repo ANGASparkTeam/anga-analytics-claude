@@ -1,0 +1,15 @@
+{
+  "name": "anga",
+  "description": "ANGA plugins for Claude",
+  "owner": {
+    "name": "ANGA Spark Team",
+    "email": "spark@anga.co.th"
+  },
+  "plugins": [
+    {
+      "name": "anga-analytics",
+      "source": "./plugin",
+      "description": "GA4 + Search Console connector, Thai marketing report skill and slash shortcuts"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+# Cloud Build pipeline: test -> build image -> push -> deploy to Cloud Run.
+# Run by the GitHub trigger on pushes to main (see deploy/setup-cloudbuild.sh), or by
+# hand: gcloud builds submit --config cloudbuild.yaml --region asia-southeast1 \
+#         --service-account projects/PROJECT_ID/serviceAccounts/ga4-mcp-deployer@PROJECT_ID.iam.gserviceaccount.com \
+#         --substitutions=_ALLOWED_DOMAINS=...,_DENIED_EMAILS=...,_GOOGLE_OAUTH_CLIENT_ID=...
+# Deployment-specific values (_ALLOWED_DOMAINS, _DENIED_EMAILS, _GOOGLE_OAUTH_CLIENT_ID)
+# are set on the trigger, not in this public file; deploy.sh fails if they are missing.
+substitutions:
+  _REGION: asia-southeast1
+  _SERVICE: ga4-mcp
+  _ALLOWED_DOMAINS: ""
+  _DENIED_EMAILS: ""
+  _GOOGLE_OAUTH_CLIENT_ID: ""
+  _IMAGE: ${_REGION}-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/${_SERVICE}:${BUILD_ID}
+
+steps:
+  - id: test
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    entrypoint: bash
+    args: ["-c", "uv sync --frozen && uv run pytest -q"]
+    env: ["UV_PYTHON_DOWNLOADS=0"]
+
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "${_IMAGE}", "."]
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args: ["push", "${_IMAGE}"]
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args: ["./deploy/deploy.sh"]
+    env:
+      - PROJECT_ID=${PROJECT_ID}
+      - REGION=${_REGION}
+      - SERVICE=${_SERVICE}
+      - IMAGE=${_IMAGE}
+      - ALLOWED_DOMAINS=${_ALLOWED_DOMAINS}
+      - DENIED_EMAILS=${_DENIED_EMAILS}
+      - GOOGLE_OAUTH_CLIENT_ID=${_GOOGLE_OAUTH_CLIENT_ID}
+
+images: ["${_IMAGE}"]
+options:
+  dynamicSubstitutions: true
+  logging: CLOUD_LOGGING_ONLY  # required when the build runs as a user-specified service account
+timeout: 1200s
