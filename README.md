@@ -6,6 +6,8 @@ MCP server แบบ remote (Streamable HTTP) สำหรับดึงรา�
 - ข้อมูล GA4 อ่านในนาม**บัญชีกลาง (shared mailbox)** (ผ่าน refresh token ที่มีแค่ scope `analytics.readonly` + `webmasters.readonly`) ไม่ได้ใช้สิทธิ์ GA ของผู้ใช้แต่ละคน ผู้ใช้จึงให้สิทธิ์แค่ `openid` + `email`
 - Deploy บน Google Cloud Run
 
+> ⚠️ repo นี้เป็น **public** ห้าม commit ข้อมูลลูกค้า รายงาน (`reports/`) token, client secret หรืออีเมลบัญชีกลาง ค่าเฉพาะของ deployment เก็บใน Secret Manager และ substitution ของ Cloud Build trigger
+
 > **ผู้ใช้ (ทีม marketing): ดู [เริ่มใช้งาน](#เริ่มใช้งาน-สำหรับทีม-marketing)** · สเปกของ tools ทั้งหมดอยู่ที่ [`docs/CONTRACT.md`](docs/CONTRACT.md) และมี plugin สำหรับ Claude (Skill + connector) อยู่ใน [`plugin/`](plugin/) (ดูข้อ 7)
 
 ---
